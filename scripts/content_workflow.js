@@ -114,6 +114,7 @@ function showPerformerSelect(buttonElem) {
         $('<div class="performer_select_row"></div>')
           .append($('<span class="performer_id"></span>').text(performerList[i].performer_id))
           .append($('<span class="performer_name"></span>').text(performerList[i].performer_name))
+          .append($('<span class="close_button"></span>'))
       );
   }
 
@@ -156,6 +157,30 @@ $(document).on('click', 'div.performer_select_row', function() {
     // もとのボタンをクリック
     $($('input[name="' + dummyButtonNameExec + '"]').attr("original_selector") + ":first").click();
   });
+});
+
+// 送信先選択 バツボタンクリック
+$(document).on('click', 'div.performer_select_row .close_button', function(e) {
+  var row = $(this).closest('div.performer_select_row');
+  var performerId = row.find('.performer_id').text();
+
+  var idx = -1;
+  for(var i in performerList) {
+    if(performerList[i].performer_id == performerId) {
+      idx = i;
+      break;
+    }
+  }
+  
+  if(idx >= 0){
+    performerList.splice(idx, 1);
+  }
+  
+  chrome.storage.local.set({"the_amoeba_support_performer_history": performerList} , function(){});
+
+  row.remove();
+
+  e.stopPropagation(); // 親要素のイベントを発生させない
 });
 
 // 変更せず実行ボタン
