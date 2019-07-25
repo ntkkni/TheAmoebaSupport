@@ -246,3 +246,30 @@ input[type="radio"].label_radio {
 .close_button:hover{
   background-color:#0E7AC4;
 }
+
+.alert_tooltip {
+  position: relative;
+}
+.alert_tooltip::before,
+.alert_tooltip::after {
+  position: absolute;
+  transition: all 0.3s ease 0s;
+  opacity: 0.6;
+}
+.alert_tooltip::before {
+  content: "";
+  border: 10px solid transparent;
+  border-bottom-color: #ff1111;
+  left: 10px;
+  top: 14px;
+}
+.alert_tooltip::after {
+  content: attr(data-tooltip);
+  display: block;
+  padding: 5px;
+  background: #ff1111;
+  color: #fff;
+  border-radius: 5px;
+  left: 0;
+  top: 34px;
+}

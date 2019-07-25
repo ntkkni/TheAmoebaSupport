@@ -1,13 +1,13 @@
 {
     "name": "The Amoeba Support for KCCS",
-    "version": "1.0.12",
+    "version": "1.1.0",
     "manifest_version": 2,
     "description": "support the amoeba system",
     "content_security_policy": "script-src 'self'; object-src 'self'",
     "permissions": [
         "storage",
         "cookies",
-        "*://amoeba_chrome.kccs.co.jp/*", 
+        "*://amoeba_chrome.kccs.co.jp/*",
         "*://teams.kytdc.kccs.co.jp/*"
     ],
     "icons": {
