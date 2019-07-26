@@ -131,16 +131,10 @@ $(document).on('click', 'input[name="' + dummyButtonNameCalc + '"]', function() 
   });
 });
 
-// チェックボックス切替時のチェック
-$(document).on('change', 'input[type="checkbox"][name="Decide_chk"]', function() {
-  if(!isWorkRecordPage()) return;
-
-  var row1 = $(this).closest('tr');
-  var row2 = $(this).closest('tr').next('tr');
-  var row3 = $(this).closest('tr').next('tr').next('tr');
-
-  var isChecked = $(this).prop("checked");
+function checkBuisinessTripCL(row1, row2, row3) {
+  var isChecked = row1.find('input[type="checkbox"][name="Decide_chk"]').prop("checked");
   var businessTripCL = row3.find('select[name="Business_Trip_CL"]').val();
+  var absenceCL = row3.find('select[name="Absence_CL"]').val();
   var recordTime_1 = row2.find('input[name="Record_Time_1"]').val();
   var recordTime_2 = row3.find('input[name="Record_Time_2"]').val();
 
@@ -153,11 +147,33 @@ $(document).on('change', 'input[type="checkbox"][name="Decide_chk"]', function()
     tooltipDiv = $(tooltipDivs[0]);
   }
 
-  if (isChecked && (!recordTime_1 || !recordTime_2) && businessTripCL == "0") {
+  if (isChecked && (!recordTime_1 || !recordTime_2) && absenceCL != "21" && businessTripCL == "0") {
     tooltipDiv.addClass('alert_tooltip');
   } else {
     tooltipDiv.removeClass('alert_tooltip');
   }
+}
+
+// チェックボックス切替時のチェック
+$(document).on('change', 'input[type="checkbox"][name="Decide_chk"]', function() {
+  if(!isWorkRecordPage()) return;
+
+  var row1 = $(this).closest('tr');
+  var row2 = $(this).closest('tr').next('tr');
+  var row3 = $(this).closest('tr').next('tr').next('tr');
+
+  checkBuisinessTripCL(row1, row2, row3);
+});
+
+// 欠勤区分切替時のチェック
+$(document).on('change', 'select[name="Absence_CL"]', function() {
+  if(!isWorkRecordPage()) return;
+
+  var row1 = $(this).closest('tr').prev('tr').prev('tr');
+  var row2 = $(this).closest('tr').prev('tr');
+  var row3 = $(this).closest('tr');
+
+  checkBuisinessTripCL(row1, row2, row3);
 });
 
 // 出張外出区分切替時のチェック
@@ -168,25 +184,7 @@ $(document).on('change', 'select[name="Business_Trip_CL"]', function() {
   var row2 = $(this).closest('tr').prev('tr');
   var row3 = $(this).closest('tr');
 
-  var isChecked = row1.find('input[type="checkbox"][name="Decide_chk"]').prop("checked");
-  var businessTripCL = $(this).val();
-  var recordTime_1 = row2.find('input[name="Record_Time_1"]').val();
-  var recordTime_2 = row3.find('input[name="Record_Time_2"]').val();
-
-  var tooltipDivs = row3.find('div[name="Business_Trip_CL_tooltip"]');
-  var tooltipDiv = null;
-  if (tooltipDivs.length == 0) {
-    tooltipDiv = $('<div name="Business_Trip_CL_tooltip" style="height:0px;" data-tooltip="打刻がない場合は出張・外出区分を指定してください"></div>')
-    row3.find('select[name="Business_Trip_CL"]').before(tooltipDiv)
-  } else {
-    tooltipDiv = $(tooltipDivs[0]);
-  }
-
-  if (isChecked && (!recordTime_1 || !recordTime_2) && businessTripCL == "0") {
-    tooltipDiv.addClass('alert_tooltip');
-  } else {
-    tooltipDiv.removeClass('alert_tooltip');
-  }
+  checkBuisinessTripCL(row1, row2, row3);
 });
 
 // 振徹休区分
