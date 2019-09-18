@@ -30,9 +30,9 @@ a.menu-group-item_Header:hover, a.menu-group-item_Header:focus {
 }
 
 #Menu_List_Header > .position_abs:first-child {
-  height: -webkit-fill-available;
+  /*height: -webkit-fill-available;*/
   position: absolute !important;
-  overflow-y: scroll;
+  /*overflow-y: scroll;*/
 }
 
 .MouseOverMenu > .Menu_Program_Div a {
