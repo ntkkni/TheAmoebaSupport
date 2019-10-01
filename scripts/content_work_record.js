@@ -101,11 +101,12 @@ $(document).on('click', 'input[name="' + dummyButtonNameCalc + '"]', function() 
       }
 
       // 15分休憩を含んで退勤打刻が定時より一定時間後なら残業計算
-      if((recordEndTimeHour * 60 + recordEndTimeMin) - (endFixedTimeHour * 60 + endFixedTimeMin) >= (15 + OvertimeUnitMin)) {
+      const fixedRestMinutes = 0; // 固定の休憩時間
+      if((recordEndTimeHour * 60 + recordEndTimeMin) - (endFixedTimeHour * 60 + endFixedTimeMin) >= (fixedRestMinutes + OvertimeUnitMin)) {
         var startOvertimeStr = row.find('input[type="text"][name="Starting_Of_The_Overtime_Work"]').val();
         if(!startOvertimeStr) {// すでに入力されている場合は上書きしない
           var startOvertimeHour = endFixedTimeHour;
-          var startOvertimeMin = endFixedTimeMin + 15;
+          var startOvertimeMin = endFixedTimeMin + fixedRestMinutes;
           if (startOvertimeMin == 60) {
             startOvertimeHour++;
             startOvertimeMin = 0;
