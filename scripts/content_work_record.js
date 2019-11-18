@@ -4,6 +4,8 @@
 
 // 残業カウント単位分
 const OvertimeUnitMin = 15;
+ // 固定の休憩時間 (かつては定時前後は15分休憩必須となっていたがなくなった)
+const FixedRestMinutes = 0;
 
 const dummyButtonNameCalc = "the_amoeba_support_dummy_button_calc";
 
@@ -28,9 +30,10 @@ $(document).on('mouseenter', 'input[type="button"][value="計算(K)"]', function
 
 // ダミー計算ボタンクリック
 $(document).on('click', 'input[name="' + dummyButtonNameCalc + '"]', function() {
-  
+
   var transferClassList = [];
 
+  // 定時開始時刻の要素がある行(中段)を取得
   $('input[type="hidden"][name="Start_Fixed_Time"]').each(function(i, elem) {
     var startFixedTimeStr = $(elem).val(); // 定時開始時刻
     var row = $(elem).closest('tr');
@@ -65,10 +68,41 @@ $(document).on('click', 'input[name="' + dummyButtonNameCalc + '"]', function() 
           row.find('input[type="text"][name="Cut_Time_Usually"]').val(cutTimeHour + ":" + ("0" + cutTimeMin).slice(-2));
         }
       }
+
+      
+      // n分休憩を含んで出勤打刻が定時より一定時間前なら早出残業計算
+      if((startFixedTimeHour * 60 + startFixedTimeMin) - (recordStartTimeHour * 60 + recordStartTimeMin) >= (FixedRestMinutes + OvertimeUnitMin)) {
+        var startOvertimeStr = row.find('input[type="text"][name="Starting_Of_The_Overtime_Early"]').val();
+        if(!startOvertimeStr) {// すでに入力されている場合は上書きしない
+
+          var startOvertimeHour = recordStartTimeHour;
+          var startOvertimeMin = Math.ceil(recordStartTimeMin / OvertimeUnitMin) * OvertimeUnitMin;
+          if (startOvertimeMin == 60) {
+            startOvertimeHour++;
+            startOvertimeMin = 0;
+          }
+          
+          row.find('input[type="text"][name="Starting_Of_The_Overtime_Early"]').val(startOvertimeHour + ":" + ("0" + startOvertimeMin).slice(-2)); // 残業開始時刻
+        }
+        
+        var endOvertimeStr = row.find('input[type="text"][name="Ending_Of_The_Overtime_Early"]').val();
+        if(!endOvertimeStr) {// すでに入力されている場合は上書きしない
+          var endOvertimeHour = startFixedTimeHour;
+          var endOvertimeMin = startFixedTimeMin - FixedRestMinutes;
+          if (endOvertimeMin < 0) {
+            endOvertimeHour--;
+            endOvertimeMin = 60 + startOvertimeMin;
+          }
+
+          row.find('input[type="text"][name="Ending_Of_The_Overtime_Early"]').val(endOvertimeHour + ":" + ("0" + endOvertimeMin).slice(-2)); // 残業終了時刻
+        }
+
+        calcEarlyOvertimeWork(row);
+      }
     }
   });
 
-  // 定時終了時刻がある行を取得
+  // 定時終了時刻の要素がある行(下段)を取得
   $('input[type="hidden"][name="End_Fixed_Time"]').each(function(i, elem){
     var endFixedTimeStr = $(elem).val(); // 定時終了時刻
     var row = $(elem).closest('tr');
@@ -100,13 +134,12 @@ $(document).on('click', 'input[name="' + dummyButtonNameCalc + '"]', function() 
         }
       }
 
-      // 15分休憩を含んで退勤打刻が定時より一定時間後なら残業計算
-      const fixedRestMinutes = 0; // 固定の休憩時間
-      if((recordEndTimeHour * 60 + recordEndTimeMin) - (endFixedTimeHour * 60 + endFixedTimeMin) >= (fixedRestMinutes + OvertimeUnitMin)) {
+      // n分休憩を含んで退勤打刻が定時より一定時間後なら残業計算
+      if((recordEndTimeHour * 60 + recordEndTimeMin) - (endFixedTimeHour * 60 + endFixedTimeMin) >= (FixedRestMinutes + OvertimeUnitMin)) {
         var startOvertimeStr = row.find('input[type="text"][name="Starting_Of_The_Overtime_Work"]').val();
         if(!startOvertimeStr) {// すでに入力されている場合は上書きしない
           var startOvertimeHour = endFixedTimeHour;
-          var startOvertimeMin = endFixedTimeMin + fixedRestMinutes;
+          var startOvertimeMin = endFixedTimeMin + FixedRestMinutes;
           if (startOvertimeMin == 60) {
             startOvertimeHour++;
             startOvertimeMin = 0;
@@ -321,6 +354,26 @@ function getBusinessTripLabel(code) {
 }
 
 // ****** 残業時間計算 ******
+$(document).on('change', 'input[type="text"][name="Starting_Of_The_Overtime_Early"]', function() {
+  var row = $(this).closest('tr');
+  calcEarlyOvertimeWork(row);
+});
+
+$(document).on('change', 'input[type="text"][name="Ending_Of_The_Overtime_Early"]', function() {
+  var row = $(this).closest('tr');
+  calcEarlyOvertimeWork(row);
+});
+
+$(document).on('change', 'input[type="text"][name="Ed_Interval_Usually_Early"]', function() {
+  var row = $(this).closest('tr');
+  calcEarlyOvertimeWork(row);
+});
+
+$(document).on('change', 'input[type="text"][name="Ed_Interval_Night_Early"]', function() {
+  var row = $(this).closest('tr');
+  calcEarlyOvertimeWork(row);
+});
+
 $(document).on('change', 'input[type="text"][name="Starting_Of_The_Overtime_Work"]', function() {
   var row = $(this).closest('tr');
   calcOvertimeWork(row);
@@ -343,9 +396,16 @@ $(document).on('change', 'input[type="text"][name="Ed_Interval_Night_Fixed_Holid
 
 
 // 残業時間の計算
-function calcOvertimeWork(row) {
-  var startTimeStr = row.find('input[type="text"][name="Starting_Of_The_Overtime_Work"]').val();
-  var endTimeStr = row.find('input[type="text"][name="Ending_Of_The_Overtime_Work"]').val();
+function calcOvertimeWorkCommon(row, 
+  elementNameOvertimeStart, 
+  elementNameOvertimeEnd, 
+  elementNameIntervalTime, 
+  elementNameIntervalTimeMidnight, 
+  elementNameOverTime, 
+  elementNameOverTimeMidnight) {
+
+  var startTimeStr = row.find('input[type="text"][name="' + elementNameOvertimeStart + '"]').val();
+  var endTimeStr = row.find('input[type="text"][name="' + elementNameOvertimeEnd + '"]').val();
   
   if (startTimeStr && endTimeStr) {
     var start = startTimeStr.split(/:/g);
@@ -375,7 +435,8 @@ function calcOvertimeWork(row) {
         clockMin = 0;
       }
       
-      if ((clockHour == 22 && clockMin > 0) || (clockHour > 22 && clockHour < 29) || (clockHour == 29 && clockMin == 0)) { // 22:00～29:00(5:00)は深夜残業
+      if ((clockHour == -2 && clockMin > 0) || (clockHour > -2 && clockHour < 5) || (clockHour == 5 && clockMin == 0) || // -2:00～5:00は深夜残業
+        (clockHour == 22 && clockMin > 0) || (clockHour > 22 && clockHour < 29) || (clockHour == 29 && clockMin == 0)) { // 22:00～29:00(5:00)は深夜残業
         overtimeMidnightMin += OvertimeUnitMin;
       } else {
         overtimeMin += OvertimeUnitMin;
@@ -384,8 +445,8 @@ function calcOvertimeWork(row) {
     }
     
     
-    var intervalStr = row.find('input[type="text"][name="Ed_Interval_Usually_Fixed_Holiday"]').val();
-    var intervalMidnightStr = row.find('input[type="text"][name="Ed_Interval_Night_Fixed_Holiday"]').val();
+    var intervalStr = row.find('input[type="text"][name="' + elementNameIntervalTime + '"]').val();
+    var intervalMidnightStr = row.find('input[type="text"][name="' + elementNameIntervalTimeMidnight + '"]').val();
     
     // 休憩が入力されている場合
     if (intervalStr) {
@@ -396,7 +457,7 @@ function calcOvertimeWork(row) {
       
       overtimeMin = overtimeMin - (intervalHour * 60 + intervalMin);
     } else {
-      row.find('input[type="text"][name="Ed_Interval_Usually_Fixed_Holiday"]').val("00:00")
+      row.find('input[type="text"][name="' + elementNameIntervalTime + '"]').val("00:00")
     }
     
     if (intervalMidnightStr) {
@@ -407,7 +468,7 @@ function calcOvertimeWork(row) {
       
       overtimeMidnightMin = overtimeMidnightMin - (intervalMidnghtHour * 60 + intervalMidnghtMin);
     } else {
-      row.find('input[type="text"][name="Ed_Interval_Night_Fixed_Holiday"]').val("00:00")
+      row.find('input[type="text"][name="' + elementNameIntervalTimeMidnight + '"]').val("00:00")
     }
     
     var overtimeHour = Math.floor(overtimeMin / 60);
@@ -415,7 +476,29 @@ function calcOvertimeWork(row) {
     var overtimeMidnightHour = Math.floor(overtimeMidnightMin / 60);
     overtimeMidnightMin = overtimeMidnightMin % 60;
     
-    row.find('input[type="text"][name="Ed_Overtime_Usually_Fixed_Holiday"]').val(overtimeHour + ":" + ("0" + overtimeMin).slice(-2));
-    row.find('input[type="text"][name="Ed_Overtime_Night_Fixed_Holiday"]').val(overtimeMidnightHour + ":" + ("0" + overtimeMidnightMin).slice(-2));
+    row.find('input[type="text"][name="' + elementNameOverTime + '"]').val(overtimeHour + ":" + ("0" + overtimeMin).slice(-2));
+    row.find('input[type="text"][name="' + elementNameOverTimeMidnight + '"]').val(overtimeMidnightHour + ":" + ("0" + overtimeMidnightMin).slice(-2));
   }
+}
+
+// 早出残業時間の計算
+function calcEarlyOvertimeWork(row) {
+  calcOvertimeWorkCommon(row, 
+    "Starting_Of_The_Overtime_Early",
+    "Ending_Of_The_Overtime_Early",
+    "Ed_Interval_Usually_Early",
+    "Ed_Interval_Night_Early",
+    "Ed_Overtime_Usually_Early",
+    "Ed_Overtime_Night_Early");
+}
+
+// 残業時間の計算
+function calcOvertimeWork(row) {
+  calcOvertimeWorkCommon(row, 
+    "Starting_Of_The_Overtime_Work",
+    "Ending_Of_The_Overtime_Work",
+    "Ed_Interval_Usually_Fixed_Holiday",
+    "Ed_Interval_Night_Fixed_Holiday",
+    "Ed_Overtime_Usually_Fixed_Holiday",
+    "Ed_Overtime_Night_Fixed_Holiday");
 }
