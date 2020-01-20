@@ -452,7 +452,7 @@ function calcOvertimeWorkCommon(row,
     
     var totalTimeValue = totalTimeHour + ":" + ("0" + totalTimeMin).slice(-2);
 
-    row.find('input[type="hidden"][name="' + elementNameTimeTotal + '"]').val(totalTimeValue);
+    row.find('input[name="' + elementNameTimeTotal + '"]').val(totalTimeValue);
     row.find('span[id="' + elementNameTimeTotal + '_lbl"]').text(totalTimeValue);
     
     // 休憩が入力されている場合
@@ -489,9 +489,9 @@ function calcOvertimeWorkCommon(row,
     var overtimeValue = overtimeHour + ":" + ("0" + overtimeMin).slice(-2);
     var overtimeMidnightValue = overtimeMidnightHour + ":" + ("0" + overtimeMidnightMin).slice(-2);
 
-    row.find('input[type="hidden"][name="' + elementNameOverTime + '"]').val(overtimeValue);
+    row.find('input[name="' + elementNameOverTime + '"]').val(overtimeValue);
     row.find('span[id="' + elementNameOverTime + '_lbl"]').text(overtimeValue);
-    row.find('input[type="hidden"][name="' + elementNameOverTimeMidnight + '"]').val(overtimeMidnightValue);
+    row.find('input[name="' + elementNameOverTimeMidnight + '"]').val(overtimeMidnightValue);
     row.find('span[id="' + elementNameOverTimeMidnight + '_lbl"]').text(overtimeMidnightValue);
   }
 }
