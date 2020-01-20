@@ -402,7 +402,8 @@ function calcOvertimeWorkCommon(row,
   elementNameIntervalTime, 
   elementNameIntervalTimeMidnight, 
   elementNameOverTime, 
-  elementNameOverTimeMidnight) {
+  elementNameOverTimeMidnight, 
+  elementNameTimeTotal) {
 
   var startTimeStr = row.find('input[type="text"][name="' + elementNameOvertimeStart + '"]').val();
   var endTimeStr = row.find('input[type="text"][name="' + elementNameOvertimeEnd + '"]').val();
@@ -423,6 +424,7 @@ function calcOvertimeWorkCommon(row,
     var clockHour = startHour;
     var clockMin = startMin;
     
+    // 合計時間を計算
     var overtimeMin = 0;
     var overtimeMidnightMin = 0;
     
@@ -444,11 +446,19 @@ function calcOvertimeWorkCommon(row,
       
     }
     
+    // 合計時間の表示
+    var totalTimeHour = Math.floor(overtimeMin / 60);
+    var totalTimeMin = overtimeMin % 60;
     
+    var totalTimeValue = totalTimeHour + ":" + ("0" + totalTimeMin).slice(-2);
+
+    row.find('input[type="hidden"][name="' + elementNameTimeTotal + '"]').val(totalTimeValue);
+    row.find('span[id="' + elementNameTimeTotal + '_lbl"]').text(totalTimeValue);
+    
+    // 休憩が入力されている場合
     var intervalStr = row.find('input[type="text"][name="' + elementNameIntervalTime + '"]').val();
     var intervalMidnightStr = row.find('input[type="text"][name="' + elementNameIntervalTimeMidnight + '"]').val();
     
-    // 休憩が入力されている場合
     if (intervalStr) {
       var interval = intervalStr.split(/:/g);
       
@@ -476,8 +486,13 @@ function calcOvertimeWorkCommon(row,
     var overtimeMidnightHour = Math.floor(overtimeMidnightMin / 60);
     overtimeMidnightMin = overtimeMidnightMin % 60;
     
-    row.find('input[type="text"][name="' + elementNameOverTime + '"]').val(overtimeHour + ":" + ("0" + overtimeMin).slice(-2));
-    row.find('input[type="text"][name="' + elementNameOverTimeMidnight + '"]').val(overtimeMidnightHour + ":" + ("0" + overtimeMidnightMin).slice(-2));
+    var overtimeValue = overtimeHour + ":" + ("0" + overtimeMin).slice(-2);
+    var overtimeMidnightValue = overtimeMidnightHour + ":" + ("0" + overtimeMidnightMin).slice(-2);
+
+    row.find('input[type="hidden"][name="' + elementNameOverTime + '"]').val(overtimeValue);
+    row.find('span[id="' + elementNameOverTime + '_lbl"]').text(overtimeValue);
+    row.find('input[type="hidden"][name="' + elementNameOverTimeMidnight + '"]').val(overtimeMidnightValue);
+    row.find('span[id="' + elementNameOverTimeMidnight + '_lbl"]').text(overtimeMidnightValue);
   }
 }
 
@@ -489,7 +504,8 @@ function calcEarlyOvertimeWork(row) {
     "Ed_Interval_Usually_Early",
     "Ed_Interval_Night_Early",
     "Ed_Overtime_Usually_Early",
-    "Ed_Overtime_Night_Early");
+    "Ed_Overtime_Night_Early",
+    "Ed_TimeTotal_Early");
 }
 
 // 残業時間の計算
@@ -500,5 +516,6 @@ function calcOvertimeWork(row) {
     "Ed_Interval_Usually_Fixed_Holiday",
     "Ed_Interval_Night_Fixed_Holiday",
     "Ed_Overtime_Usually_Fixed_Holiday",
-    "Ed_Overtime_Night_Fixed_Holiday");
+    "Ed_Overtime_Night_Fixed_Holiday",
+    "Ed_TimeTotal_Fixed_Holiday");
 }
