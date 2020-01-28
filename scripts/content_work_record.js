@@ -20,148 +20,61 @@ function isWorkRecordPage() {
 }
 
 // ダミー計算ボタン生成
-$(document).on('mouseenter', 'input[type="button"][value="計算(K)"]', function() {
+$(document).on('mouseenter', 'input[type="button"][value="計算(K)"][title="計算"]', function() {
   if(!isWorkRecordPage()) return;
 
   if ($('input[name="' + dummyButtonNameCalc +'"]').length == 0) {
-    createDummyButton($(this), 'input[type="button"][value="計算(K)"]', dummyButtonNameCalc);
+    createDummyButton($(this), 'input[type="button"][value="計算(K)"][title="計算"]', dummyButtonNameCalc);
   }
 });
 
 // ダミー計算ボタンクリック
 $(document).on('click', 'input[name="' + dummyButtonNameCalc + '"]', function() {
 
-  var transferClassList = [];
-
   // 定時開始時刻の要素がある行(中段)を取得
   $('input[type="hidden"][name="Start_Fixed_Time"]').each(function(i, elem) {
-    var startFixedTimeStr = $(elem).val(); // 定時開始時刻
     var row = $(elem).closest('tr');
-    var recordStartTimeStr = row.find('input[type="hidden"][name="Record_Time_1"]').val(); // 出勤打刻時間
-    var transferClass = row.find('select[name="Transfer_CL"]').val();
-    transferClassList.push(transferClass);
-
-    // 打刻がある
-    if(recordStartTimeStr) {
-      
-      var startFixedTimeHour = parseInt(startFixedTimeStr.split(/:/g)[0]);
-      var startFixedTimeMin = parseInt(startFixedTimeStr.split(/:/g)[1]);
-      var recordStartTimeHour = parseInt(recordStartTimeStr.split(/:/g)[0]);
-      var recordStartTimeMin = parseInt(recordStartTimeStr.split(/:/g)[1]);
-
-      var startBusinessTime = row.find('input[type="text"][name="Starting_Of_The_Business_Time"]').val();
-      if (!startBusinessTime && (transferClass == "0" || transferClass == "1")) { // 入力されていない　通常or振出の場合
-        if ((startFixedTimeHour * 60 + startFixedTimeMin) >= (recordStartTimeHour * 60 + recordStartTimeMin)) {
-          // 定時開始時刻 ≧ 打刻
-          row.find('input[type="text"][name="Starting_Of_The_Business_Time"]').val(startFixedTimeStr);
-        } else {
-          // 定時開始時刻 < 打刻 (遅刻)
-          row.find('input[type="text"][name="Starting_Of_The_Business_Time"]').val(recordStartTimeStr);
-
-          // カット時間
-          var fixedTime = (startFixedTimeHour * 60 + startFixedTimeMin);
-          var recordTime = (recordStartTimeHour * 60 + Math.floor(recordStartTimeMin / OvertimeUnitMin) * OvertimeUnitMin);
-          
-          var cutTime = recordTime - fixedTime;
-          var cutTimeHour = Math.floor(cutTime / 60);
-          var cutTimeMin = cutTime % 60;
-          row.find('input[type="text"][name="Cut_Time_Usually"]').val(cutTimeHour + ":" + ("0" + cutTimeMin).slice(-2));
-        }
-      }
-
-      
-      // n分休憩を含んで出勤打刻が定時より一定時間前なら早出残業計算
-      if((startFixedTimeHour * 60 + startFixedTimeMin) - (recordStartTimeHour * 60 + recordStartTimeMin) >= (FixedRestMinutes + OvertimeUnitMin)) {
-        var startOvertimeStr = row.find('input[type="text"][name="Starting_Of_The_Overtime_Early"]').val();
-        if(!startOvertimeStr) {// すでに入力されている場合は上書きしない
-
-          var startOvertimeHour = recordStartTimeHour;
-          var startOvertimeMin = Math.ceil(recordStartTimeMin / OvertimeUnitMin) * OvertimeUnitMin;
-          if (startOvertimeMin == 60) {
-            startOvertimeHour++;
-            startOvertimeMin = 0;
-          }
-          
-          row.find('input[type="text"][name="Starting_Of_The_Overtime_Early"]').val(startOvertimeHour + ":" + ("0" + startOvertimeMin).slice(-2)); // 残業開始時刻
-        }
-        
-        var endOvertimeStr = row.find('input[type="text"][name="Ending_Of_The_Overtime_Early"]').val();
-        if(!endOvertimeStr) {// すでに入力されている場合は上書きしない
-          var endOvertimeHour = startFixedTimeHour;
-          var endOvertimeMin = startFixedTimeMin - FixedRestMinutes;
-          if (endOvertimeMin < 0) {
-            endOvertimeHour--;
-            endOvertimeMin = 60 + startOvertimeMin;
-          }
-
-          row.find('input[type="text"][name="Ending_Of_The_Overtime_Early"]').val(endOvertimeHour + ":" + ("0" + endOvertimeMin).slice(-2)); // 残業終了時刻
-        }
-
-        calcEarlyOvertimeWork(row);
-      }
-    }
+    calcMiddleRow(row);
   });
 
   // 定時終了時刻の要素がある行(下段)を取得
   $('input[type="hidden"][name="End_Fixed_Time"]').each(function(i, elem){
-    var endFixedTimeStr = $(elem).val(); // 定時終了時刻
     var row = $(elem).closest('tr');
-    var recordEndTimeStr = row.find('input[type="hidden"][name="Record_Time_2"]').val(); // 退勤打刻時間
-    var transferClass = transferClassList[i];
-
-    if(recordEndTimeStr) { // 打刻がある場合のみ
-
-      var endFixedTimeHour = parseInt(endFixedTimeStr.split(/:/g)[0]);
-      var endFixedTimeMin = parseInt(endFixedTimeStr.split(/:/g)[1]);
-      var recordEndTimeHour = parseInt(recordEndTimeStr.split(/:/g)[0]);
-      var recordEndTimeMin = parseInt(recordEndTimeStr.split(/:/g)[1]);
-
-      if ((endFixedTimeHour - 8) > recordEndTimeHour) {
-        recordEndTimeHour += 24; // 退勤打刻が定時終了時刻より以上に小さい場合(とりあえず8h)は日付をまたいだと考える
-      }
-
-      var endBusinessTime = row.find('input[type="text"][name="Ending_Of_The_Business_Time"]').val();
-      if (!endBusinessTime && (transferClass == "0" || transferClass == "1")) { // 入力されていない　通常or振出の場合
-        if ((endFixedTimeHour * 60 + endFixedTimeMin) <= (recordEndTimeHour * 60 + recordEndTimeMin)) {
-          // 定時終了時刻 ≦ 打刻
-          row.find('input[type="text"][name="Ending_Of_The_Business_Time"]').val(endFixedTimeStr);
-        } else {
-          // 定時開始時刻 > 打刻 (早退)
-          var endTimeMin = Math.floor(recordEndTimeMin / OvertimeUnitMin) * OvertimeUnitMin // 早退って切り捨てでいいんだっけ？
-          row.find('input[type="text"][name="Ending_Of_The_Business_Time"]').val(recordEndTimeHour + ":" + ("0" + endTimeMin).slice(-2));
-
-          // TODO カット時間
-        }
-      }
-
-      // n分休憩を含んで退勤打刻が定時より一定時間後なら残業計算
-      if((recordEndTimeHour * 60 + recordEndTimeMin) - (endFixedTimeHour * 60 + endFixedTimeMin) >= (FixedRestMinutes + OvertimeUnitMin)) {
-        var startOvertimeStr = row.find('input[type="text"][name="Starting_Of_The_Overtime_Work"]').val();
-        if(!startOvertimeStr) {// すでに入力されている場合は上書きしない
-          var startOvertimeHour = endFixedTimeHour;
-          var startOvertimeMin = endFixedTimeMin + FixedRestMinutes;
-          if (startOvertimeMin == 60) {
-            startOvertimeHour++;
-            startOvertimeMin = 0;
-          }
-          
-          row.find('input[type="text"][name="Starting_Of_The_Overtime_Work"]').val(startOvertimeHour + ":" + ("0" + startOvertimeMin).slice(-2)); // 残業開始時刻
-        }
-        
-        var endOvertimeStr = row.find('input[type="text"][name="Ending_Of_The_Overtime_Work"]').val();
-        if(!endOvertimeStr) {// すでに入力されている場合は上書きしない
-          var endOvertimeMin = Math.floor(recordEndTimeMin / OvertimeUnitMin) * OvertimeUnitMin;
-          row.find('input[type="text"][name="Ending_Of_The_Overtime_Work"]').val(recordEndTimeHour + ":" + ("0" + endOvertimeMin).slice(-2)); // 残業終了時刻
-        }
-
-        calcOvertimeWork(row);
-      }
-    }
+    calcBottomRow(row);
   });
 
   setTimeout(() => {
     // もとのボタンをクリック
     $($('input[name="' + dummyButtonNameCalc + '"]').attr("original_selector")).click();
+  });
+});
+
+// ダミー計算ボタン(個別行)生成
+$(document).on('mouseenter', 'input[type="button"][value="計算"][title="計算"]', function() {
+  if(!isWorkRecordPage()) return;
+
+  var dummyName = dummyButtonNameCalc + "_r"
+
+  if ($(this).closest('tr').find('input[name="' + dummyName +'"]').length == 0) {
+    createDummyButton($(this), 'input[type="button"][value="計算"][title="計算"]', dummyName);
+  }
+});
+
+// ダミー計算ボタン(個別行)クリック
+$(document).on('click', 'input[name="' + dummyButtonNameCalc + '_r"]', function() {
+  var row1 = $(this).closest('tr');
+
+  // 定時開始時刻の要素がある行(中段)を取得
+  var row2 = $(this).closest('tr').next('tr');
+  calcMiddleRow(row2);
+
+  // 定時終了時刻の要素がある行(下段)を取得
+  var row3 = $(this).closest('tr').next('tr').next('tr');
+  calcBottomRow(row3);
+
+  setTimeout(() => {
+    // もとのボタンをクリック
+    row1.find($(this).attr("original_selector")).click();
   });
 });
 
@@ -188,6 +101,49 @@ function checkBuisinessTripCL(row1, row2, row3) {
   }
 }
 
+// 休憩時間のチェック
+function checkIntervalReason(row1, row2, row3) {
+  var isChecked = row1.find('input[type="checkbox"][name="Decide_chk"]').prop("checked");
+  var comment = row1.find('input[type="text"][name="Ed_Comment"]').val();
+
+  var intervalUsuallyEarly = row2.find('input[type="text"][name="Ed_Interval_Usually_Early"]').val();
+  var intervalNightEarly = row2.find('input[type="text"][name="Ed_Interval_Night_Early"]').val();
+  var intervalUsuallyFixedHoliday = row3.find('input[type="text"][name="Ed_Interval_Usually_Fixed_Holiday"]').val();
+  var intervalNightFixedHoliday = row3.find('input[type="text"][name="Ed_Interval_Night_Fixed_Holiday"]').val();
+  
+  var intervalTotal = 0;
+
+  function addInterval(timeText) {
+    if (timeText) {
+      var interval = timeText.split(/:/g);
+      
+      intervalTotal += (parseInt(interval[0]) * 60);
+      intervalTotal += parseInt(interval[1]);
+    }
+  }
+
+  addInterval(intervalUsuallyEarly);
+  addInterval(intervalNightEarly);
+  addInterval(intervalUsuallyFixedHoliday);
+  addInterval(intervalNightFixedHoliday);
+
+  var tooltipDivs = row1.find('div[name="Ed_Comment_tooltip"]');
+  var tooltipDiv = null;
+  if (tooltipDivs.length == 0) {
+    tooltipDiv = $('<div name="Ed_Comment_tooltip" style="height:0px;" data-tooltip="休憩時間が合計1hを超える場合は理由を入力してください"></div>')
+    row1.find('input[name="Ed_Comment"]').before(tooltipDiv)
+  } else {
+    tooltipDiv = $(tooltipDivs[0]);
+  }
+
+  // 休憩時間の合計が60分を超える場合はアラート
+  if (isChecked && intervalTotal > 60 && !comment) {
+    tooltipDiv.addClass('alert_tooltip');
+  } else {
+    tooltipDiv.removeClass('alert_tooltip');
+  }
+}
+
 // チェックボックス切替時のチェック
 $(document).on('change', 'input[type="checkbox"][name="Decide_chk"]', function() {
   if(!isWorkRecordPage()) return;
@@ -197,6 +153,18 @@ $(document).on('change', 'input[type="checkbox"][name="Decide_chk"]', function()
   var row3 = $(this).closest('tr').next('tr').next('tr');
 
   checkBuisinessTripCL(row1, row2, row3);
+  checkIntervalReason(row1, row2, row3);
+});
+
+// コメント変更時のチェック
+$(document).on('change', 'input[type="text"][name="Ed_Comment"]', function() {
+  if(!isWorkRecordPage()) return;
+
+  var row1 = $(this).closest('tr');
+  var row2 = $(this).closest('tr').next('tr');
+  var row3 = $(this).closest('tr').next('tr').next('tr');
+
+  checkIntervalReason(row1, row2, row3);
 });
 
 // 欠勤区分切替時のチェック
@@ -367,11 +335,21 @@ $(document).on('change', 'input[type="text"][name="Ending_Of_The_Overtime_Early"
 $(document).on('change', 'input[type="text"][name="Ed_Interval_Usually_Early"]', function() {
   var row = $(this).closest('tr');
   calcEarlyOvertimeWork(row);
+
+  var row1 = $(this).closest('tr').prev('tr');
+  var row3 = $(this).closest('tr').next('tr');
+
+  checkIntervalReason(row1, row, row3);
 });
 
 $(document).on('change', 'input[type="text"][name="Ed_Interval_Night_Early"]', function() {
   var row = $(this).closest('tr');
   calcEarlyOvertimeWork(row);
+  
+  var row1 = $(this).closest('tr').prev('tr');
+  var row3 = $(this).closest('tr').next('tr');
+
+  checkIntervalReason(row1, row, row3);
 });
 
 $(document).on('change', 'input[type="text"][name="Starting_Of_The_Overtime_Work"]', function() {
@@ -387,11 +365,21 @@ $(document).on('change', 'input[type="text"][name="Ending_Of_The_Overtime_Work"]
 $(document).on('change', 'input[type="text"][name="Ed_Interval_Usually_Fixed_Holiday"]', function() {
   var row = $(this).closest('tr');
   calcOvertimeWork(row);
+  
+  var row1 = $(this).closest('tr').prev('tr').prev('tr');
+  var row2 = $(this).closest('tr').prev('tr');
+
+  checkIntervalReason(row1, row2, row);
 });
 
 $(document).on('change', 'input[type="text"][name="Ed_Interval_Night_Fixed_Holiday"]', function() {
   var row = $(this).closest('tr');
   calcOvertimeWork(row);
+  
+  var row1 = $(this).closest('tr').prev('tr').prev('tr');
+  var row2 = $(this).closest('tr').prev('tr');
+
+  checkIntervalReason(row1, row2, row);
 });
 
 
@@ -518,4 +506,127 @@ function calcOvertimeWork(row) {
     "Ed_Overtime_Usually_Fixed_Holiday",
     "Ed_Overtime_Night_Fixed_Holiday",
     "Ed_TimeTotal_Fixed_Holiday");
+}
+
+// 中段の計算全部
+function calcMiddleRow(row) {
+  var startFixedTimeStr = row.find('input[type="hidden"][name="Start_Fixed_Time"]').val(); // 定時開始時刻
+  var recordStartTimeStr = row.find('input[type="hidden"][name="Record_Time_1"]').val(); // 出勤打刻時間
+  var transferClass = row.find('select[name="Transfer_CL"]').val();
+
+  // 打刻がある
+  if(recordStartTimeStr) {
+    
+    var startFixedTimeHour = parseInt(startFixedTimeStr.split(/:/g)[0]);
+    var startFixedTimeMin = parseInt(startFixedTimeStr.split(/:/g)[1]);
+    var recordStartTimeHour = parseInt(recordStartTimeStr.split(/:/g)[0]);
+    var recordStartTimeMin = parseInt(recordStartTimeStr.split(/:/g)[1]);
+
+    var startBusinessTime = row.find('input[type="text"][name="Starting_Of_The_Business_Time"]').val();
+    if (!startBusinessTime && (transferClass == "0" || transferClass == "1")) { // 入力されていない　通常or振出の場合
+      if ((startFixedTimeHour * 60 + startFixedTimeMin) >= (recordStartTimeHour * 60 + recordStartTimeMin)) {
+        // 定時開始時刻 ≧ 打刻
+        row.find('input[type="text"][name="Starting_Of_The_Business_Time"]').val(startFixedTimeStr);
+      } else {
+        // 定時開始時刻 < 打刻 (遅刻)
+        row.find('input[type="text"][name="Starting_Of_The_Business_Time"]').val(recordStartTimeStr);
+
+        // カット時間
+        var fixedTime = (startFixedTimeHour * 60 + startFixedTimeMin);
+        var recordTime = (recordStartTimeHour * 60 + Math.floor(recordStartTimeMin / OvertimeUnitMin) * OvertimeUnitMin);
+        
+        var cutTime = recordTime - fixedTime;
+        var cutTimeHour = Math.floor(cutTime / 60);
+        var cutTimeMin = cutTime % 60;
+        row.find('input[type="text"][name="Cut_Time_Usually"]').val(cutTimeHour + ":" + ("0" + cutTimeMin).slice(-2));
+      }
+    }
+
+    
+    // n分休憩を含んで出勤打刻が定時より一定時間前なら早出残業計算
+    if((startFixedTimeHour * 60 + startFixedTimeMin) - (recordStartTimeHour * 60 + recordStartTimeMin) >= (FixedRestMinutes + OvertimeUnitMin)) {
+      var startOvertimeStr = row.find('input[type="text"][name="Starting_Of_The_Overtime_Early"]').val();
+      if(!startOvertimeStr) {// すでに入力されている場合は上書きしない
+
+        var startOvertimeHour = recordStartTimeHour;
+        var startOvertimeMin = Math.ceil(recordStartTimeMin / OvertimeUnitMin) * OvertimeUnitMin;
+        if (startOvertimeMin == 60) {
+          startOvertimeHour++;
+          startOvertimeMin = 0;
+        }
+        
+        row.find('input[type="text"][name="Starting_Of_The_Overtime_Early"]').val(startOvertimeHour + ":" + ("0" + startOvertimeMin).slice(-2)); // 残業開始時刻
+      }
+      
+      var endOvertimeStr = row.find('input[type="text"][name="Ending_Of_The_Overtime_Early"]').val();
+      if(!endOvertimeStr) {// すでに入力されている場合は上書きしない
+        var endOvertimeHour = startFixedTimeHour;
+        var endOvertimeMin = startFixedTimeMin - FixedRestMinutes;
+        if (endOvertimeMin < 0) {
+          endOvertimeHour--;
+          endOvertimeMin = 60 + startOvertimeMin;
+        }
+
+        row.find('input[type="text"][name="Ending_Of_The_Overtime_Early"]').val(endOvertimeHour + ":" + ("0" + endOvertimeMin).slice(-2)); // 残業終了時刻
+      }
+
+      calcEarlyOvertimeWork(row);
+    }
+  }
+}
+
+// 下段の計算全部
+function calcBottomRow(row) {
+  var endFixedTimeStr = row.find('input[type="hidden"][name="End_Fixed_Time"]').val(); // 定時終了時刻
+  var recordEndTimeStr = row.find('input[type="hidden"][name="Record_Time_2"]').val(); // 退勤打刻時間
+  var transferClass = row.prev('tr').find('select[name="Transfer_CL"]').val();
+
+  if(recordEndTimeStr) { // 打刻がある場合のみ
+
+    var endFixedTimeHour = parseInt(endFixedTimeStr.split(/:/g)[0]);
+    var endFixedTimeMin = parseInt(endFixedTimeStr.split(/:/g)[1]);
+    var recordEndTimeHour = parseInt(recordEndTimeStr.split(/:/g)[0]);
+    var recordEndTimeMin = parseInt(recordEndTimeStr.split(/:/g)[1]);
+
+    if ((endFixedTimeHour - 8) > recordEndTimeHour) {
+      recordEndTimeHour += 24; // 退勤打刻が定時終了時刻より以上に小さい場合(とりあえず8h)は日付をまたいだと考える
+    }
+
+    var endBusinessTime = row.find('input[type="text"][name="Ending_Of_The_Business_Time"]').val();
+    if (!endBusinessTime && (transferClass == "0" || transferClass == "1")) { // 入力されていない　通常or振出の場合
+      if ((endFixedTimeHour * 60 + endFixedTimeMin) <= (recordEndTimeHour * 60 + recordEndTimeMin)) {
+        // 定時終了時刻 ≦ 打刻
+        row.find('input[type="text"][name="Ending_Of_The_Business_Time"]').val(endFixedTimeStr);
+      } else {
+        // 定時開始時刻 > 打刻 (早退)
+        var endTimeMin = Math.floor(recordEndTimeMin / OvertimeUnitMin) * OvertimeUnitMin // 早退って切り捨てでいいんだっけ？
+        row.find('input[type="text"][name="Ending_Of_The_Business_Time"]').val(recordEndTimeHour + ":" + ("0" + endTimeMin).slice(-2));
+
+        // TODO カット時間
+      }
+    }
+
+    // n分休憩を含んで退勤打刻が定時より一定時間後なら残業計算
+    if((recordEndTimeHour * 60 + recordEndTimeMin) - (endFixedTimeHour * 60 + endFixedTimeMin) >= (FixedRestMinutes + OvertimeUnitMin)) {
+      var startOvertimeStr = row.find('input[type="text"][name="Starting_Of_The_Overtime_Work"]').val();
+      if(!startOvertimeStr) {// すでに入力されている場合は上書きしない
+        var startOvertimeHour = endFixedTimeHour;
+        var startOvertimeMin = endFixedTimeMin + FixedRestMinutes;
+        if (startOvertimeMin == 60) {
+          startOvertimeHour++;
+          startOvertimeMin = 0;
+        }
+        
+        row.find('input[type="text"][name="Starting_Of_The_Overtime_Work"]').val(startOvertimeHour + ":" + ("0" + startOvertimeMin).slice(-2)); // 残業開始時刻
+      }
+      
+      var endOvertimeStr = row.find('input[type="text"][name="Ending_Of_The_Overtime_Work"]').val();
+      if(!endOvertimeStr) {// すでに入力されている場合は上書きしない
+        var endOvertimeMin = Math.floor(recordEndTimeMin / OvertimeUnitMin) * OvertimeUnitMin;
+        row.find('input[type="text"][name="Ending_Of_The_Overtime_Work"]').val(recordEndTimeHour + ":" + ("0" + endOvertimeMin).slice(-2)); // 残業終了時刻
+      }
+
+      calcOvertimeWork(row);
+    }
+  }
 }
