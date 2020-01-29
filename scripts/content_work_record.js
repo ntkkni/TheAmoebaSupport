@@ -321,6 +321,58 @@ function getBusinessTripLabel(code) {
   return codeMap[code];
 }
 
+// ****** 時間コントロール加減 ******
+$(document).on('keydown', 'input[type="text"]', function(e) {
+  if(!isWorkRecordPage()) return;
+
+  if (e.keyCode != 38 && e.keyCode != 40) return;
+
+  var timeText = $(this).val();
+  if(!timeText) return;
+  var pattern = /^-?\d{1,2}:\d{2}$/g;
+  
+  if (timeText.match(pattern)){
+    
+    var t = timeText.split(/:/g);
+      
+    var tHour = parseInt(t[0]);
+    var tMinute = parseInt(t[1]);
+
+    tMinute = Math.floor(tMinute / OvertimeUnitMin) * OvertimeUnitMin; // 端数処理
+
+    var tTotalMinute = tHour * 60;
+    if (timeText[0] == "-") {
+      tTotalMinute -= tMinute;
+    } else {
+      tTotalMinute += tMinute;
+    }
+
+    switch (e.keyCode) {
+      case 38:
+        tTotalMinute += OvertimeUnitMin;
+        break;
+      case 40:
+        tTotalMinute -= OvertimeUnitMin;
+        break;
+      default:
+        break;
+    }
+
+    if (tTotalMinute < 0) {
+      tTotalMinute = tTotalMinute * -1
+      
+      tHour = Math.floor(tTotalMinute / 60);
+      tMinute = tTotalMinute % 60;
+
+      $(this).val("-" + tHour + ":" + ("0" + tMinute).slice(-2));
+    } else {
+      tHour = Math.floor(tTotalMinute / 60);
+      tMinute = tTotalMinute % 60;
+      $(this).val(tHour + ":" + ("0" + tMinute).slice(-2));
+    }
+  }
+});
+
 // ****** 残業時間計算 ******
 $(document).on('change', 'input[type="text"][name="Starting_Of_The_Overtime_Early"]', function() {
   var row = $(this).closest('tr');
