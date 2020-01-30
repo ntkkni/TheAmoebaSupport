@@ -370,6 +370,8 @@ $(document).on('keydown', 'input[type="text"]', function(e) {
       tMinute = tTotalMinute % 60;
       $(this).val(tHour + ":" + ("0" + tMinute).slice(-2));
     }
+
+    $(this).change();
   }
 });
 
