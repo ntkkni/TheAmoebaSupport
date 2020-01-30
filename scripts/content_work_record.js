@@ -329,10 +329,22 @@ $(document).on('keydown', 'input[type="text"]', function(e) {
 
   var timeText = $(this).val();
   if(!timeText) return;
+
   var pattern = /^-?\d{1,2}:\d{2}$/g;
   
   if (timeText.match(pattern)){
-    
+    // マイナス値の計算方法が異なるため、時刻なのか時間間隔なのか判別
+    var thisName = $(this).attr('name');
+    var timeType = "term"; 
+    if (thisName == "Starting_Of_The_Business_Time" ||
+      thisName == "Starting_Of_The_Overtime_Early" ||
+      thisName == "Ending_Of_The_Overtime_Early" ||
+      thisName == "Ending_Of_The_Business_Time" ||
+      thisName == "Starting_Of_The_Overtime_Work" ||
+      thisName == "Ending_Of_The_Overtime_Work") {
+      timeType = "clock";
+    }
+
     var t = timeText.split(/:/g);
       
     var tHour = parseInt(t[0]);
@@ -340,34 +352,59 @@ $(document).on('keydown', 'input[type="text"]', function(e) {
 
     tMinute = Math.floor(tMinute / OvertimeUnitMin) * OvertimeUnitMin; // 端数処理
 
-    var tTotalMinute = tHour * 60;
-    if (timeText[0] == "-") {
-      tTotalMinute -= tMinute;
+    if (timeType != "clock") {
+      // 時間間隔の場合
+      var tTotalMinute = tHour * 60;
+      if (timeText[0] == "-") {
+        tTotalMinute -= tMinute;
+      } else {
+        tTotalMinute += tMinute;
+      }
+
+      switch (e.keyCode) {
+        case 38:
+          tTotalMinute += OvertimeUnitMin;
+          break;
+        case 40:
+          tTotalMinute -= OvertimeUnitMin;
+          break;
+        default:
+          break;
+      }
+
+      if (tTotalMinute < 0) {
+        tTotalMinute = tTotalMinute * -1;
+        
+        tHour = Math.floor(tTotalMinute / 60);
+        tMinute = tTotalMinute % 60;
+
+        $(this).val("-" + tHour + ":" + ("0" + tMinute).slice(-2));
+      } else {
+        tHour = Math.floor(tTotalMinute / 60);
+        tMinute = tTotalMinute % 60;
+        $(this).val(tHour + ":" + ("0" + tMinute).slice(-2));
+      }
     } else {
-      tTotalMinute += tMinute;
-    }
+      // 時刻の場合
+      switch (e.keyCode) {
+        case 38:
+          tMinute += OvertimeUnitMin;
+          break;
+        case 40:
+          tMinute -= OvertimeUnitMin;
+          break;
+        default:
+          break;
+      }
 
-    switch (e.keyCode) {
-      case 38:
-        tTotalMinute += OvertimeUnitMin;
-        break;
-      case 40:
-        tTotalMinute -= OvertimeUnitMin;
-        break;
-      default:
-        break;
-    }
-
-    if (tTotalMinute < 0) {
-      tTotalMinute = tTotalMinute * -1
+      if (tMinute >= 60) {
+        tHour += Math.floor(tMinute / 60);
+        tMinute = tMinute % 60;
+      } else if (tMinute < 0) {
+        tHour += Math.floor(tMinute / 60);
+        tMinute = 60 + (tMinute % 60);
+      }
       
-      tHour = Math.floor(tTotalMinute / 60);
-      tMinute = tTotalMinute % 60;
-
-      $(this).val("-" + tHour + ":" + ("0" + tMinute).slice(-2));
-    } else {
-      tHour = Math.floor(tTotalMinute / 60);
-      tMinute = tTotalMinute % 60;
       $(this).val(tHour + ":" + ("0" + tMinute).slice(-2));
     }
 
@@ -456,16 +493,17 @@ function calcOvertimeWorkCommon(row,
     
     var startHour = parseInt(start[0]);
     var startMin = parseInt(start[1]);
+
     var endHour = parseInt(end[0]);
     var endMin = parseInt(end[1]);
-    
+
     if (startMin % 15 != 0 || endMin % 15 != 0) {
       return;
     }
     
     var clockHour = startHour;
     var clockMin = startMin;
-    
+
     // 合計時間を計算
     var overtimeMin = 0;
     var overtimeMidnightMin = 0;
@@ -485,7 +523,6 @@ function calcOvertimeWorkCommon(row,
       } else {
         overtimeMin += OvertimeUnitMin;
       }
-      
     }
     
     // 合計時間の表示
