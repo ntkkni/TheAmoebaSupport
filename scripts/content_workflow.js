@@ -2,71 +2,13 @@
 // ***** ワークフロー関連 *****
 // ****************************
 
-var performerList = [];
-
 var PrevPerformerId = "";
-
-// 送信先を履歴から選択するかどうかの設定値
-var IsChoicePerformerHistory = false;
 
 const dummyButtonNameExec = "the_amoeba_support_dummy_button_exec";
 
-function loadSetting(setting) {
-  if (setting && setting.choice_performer_history) {
-    IsChoicePerformerHistory = true;
-  } else {
-    IsChoicePerformerHistory = false;
-  }
-}
-
-// 設定のホットリロード
-chrome.storage.onChanged.addListener(function(changes, namespace) {
-  if (namespace == "local") {
-    if (changes.the_amoeba_support_setting) {
-      loadSetting(changes.the_amoeba_support_setting.newValue);
-    }
-  }
-});
-
-
-(function(){
-
-  // 設定のロード
-  chrome.storage.local.get("the_amoeba_support_setting", function(value) {
-    var d = value.the_amoeba_support_setting;
-    loadSetting(d);
-  });
-
-  chrome.storage.local.get("the_amoeba_support_performer_history", function (value) {
-    var d = value.the_amoeba_support_performer_history;
-    setPerformerList(d);
-  });
-  
-  $("body").append(
-    $('<div id="performer_select"><div>送信先変更</div></div>')
-      .append($('<div class="performer_select_table"></div>'))
-      .append($('<div></div>')
-        .append($('<input type="button" value="変更せず実行" id="performer_select_accept" class="btn amoeba-btn">'))
-        .append($('<input type="button" value="閉じる" id="performer_select_close" class="btn amoeba-btn">'))
-      )
-  );
-})();
-
-function setPerformerList(value) {
-  performerList = [];
-  
-  for (var i in value) {
-    performerList.push({ 
-      performer_id: value[i].performer_id, 
-      performer_name: value[i].performer_name 
-    });
-  }
-}
-
-
 // ダミーボタン生成判定
 function originalButtonHover(originalButton, originalButtonSelector) {
-  if (!IsChoicePerformerHistory) { // 設定OFFの場合
+  if (!TheAmoebaSupportSetting.isChoicePerformerHistory) { // 設定OFFの場合
     return;
   }
 
@@ -108,12 +50,12 @@ $(document).on('mouseenter', 'input[type="button"][value="承認(A)"]', function
 function showPerformerSelect(buttonElem) {
   $('#performer_select .performer_select_table').empty();
   
-  for(var i in performerList) {
+  for(var i in TheAmoebaSupportSetting.performerList) {
     $('#performer_select .performer_select_table')
       .append(
         $('<div class="performer_select_row"></div>')
-          .append($('<span class="performer_id"></span>').text(performerList[i].performer_id))
-          .append($('<span class="performer_name"></span>').text(performerList[i].performer_name))
+          .append($('<span class="performer_id"></span>').text(TheAmoebaSupportSetting.performerList[i].performer_id))
+          .append($('<span class="performer_name"></span>').text(TheAmoebaSupportSetting.performerList[i].performer_name))
           .append($('<span class="close_button"></span>'))
       );
   }
@@ -124,7 +66,7 @@ function showPerformerSelect(buttonElem) {
 // ダミーボタンクリック
 $(document).on('click', 'input[name="' + dummyButtonNameExec + '"]', function() {
 
-  if(performerList.length == 0) {
+  if(TheAmoebaSupportSetting.performerList.length == 0) {
     $($(this).attr("original_selector") + ":first").click();
     return;
   }
@@ -165,18 +107,18 @@ $(document).on('click', 'div.performer_select_row .close_button', function(e) {
   var performerId = row.find('.performer_id').text();
 
   var idx = -1;
-  for(var i in performerList) {
-    if(performerList[i].performer_id == performerId) {
+  for(var i in TheAmoebaSupportSetting.performerList) {
+    if(TheAmoebaSupportSetting.performerList[i].performer_id == performerId) {
       idx = i;
       break;
     }
   }
   
   if(idx >= 0){
-    performerList.splice(idx, 1);
+    TheAmoebaSupportSetting.performerList.splice(idx, 1);
   }
   
-  chrome.storage.local.set({"the_amoeba_support_performer_history": performerList} , function(){});
+  chrome.storage.local.set({"the_amoeba_support_performer_history": TheAmoebaSupportSetting.performerList} , function(){});
 
   row.remove();
 
@@ -229,33 +171,33 @@ function checkChangePerformer() {
   // すでに同じ要素がある場合は削除して末尾に追加
   while(true) {
     var idx = -1;
-    for(var i in performerList) {
-      if(performerList[i].performer_id == performerId) {
+    for(var i in TheAmoebaSupportSetting.performerList) {
+      if(TheAmoebaSupportSetting.performerList[i].performer_id == performerId) {
         idx = i;
         break;
       }
     }
     
     if(idx >= 0){
-      performerList.splice(idx, 1);
+      TheAmoebaSupportSetting.performerList.splice(idx, 1);
     } else {
       break;
     }
   }
   
-  performerList.push({ 
+  TheAmoebaSupportSetting.performerList.push({ 
     performer_id: performerId, 
     performer_name: performerName 
   });
   
   // 最大10件
   if (performerList.length > 10) {
-    performerList.shift();
+    TheAmoebaSupportSetting.performerList.shift();
   }
   
   PrevPerformerId = performerId;
   
-  chrome.storage.local.set({"the_amoeba_support_performer_history": performerList} , function(){});
+  chrome.storage.local.set({"the_amoeba_support_performer_history": TheAmoebaSupportSetting.performerList} , function(){});
 }
 
 // 1秒ごと

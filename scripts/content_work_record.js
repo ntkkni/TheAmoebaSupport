@@ -19,6 +19,20 @@ function isWorkRecordPage() {
   }
 }
 
+// Enter押下で検索
+$(document).on('keydown', function(e) {
+  if(!isWorkRecordPage()) return;
+  if (e.keyCode == 13) {
+    if (TheAmoebaSupportSetting.isChoiceEnterSearch) {
+      // チェックボタンがチェックされていない場合のみ、
+      var checkedList = $('input[type="checkbox"][name="Decide_chk"]:checked');
+      if (checkedList.length == 0) {
+        $('input[type="button"][accesskey="Z"][value="検索(Z)"]').click();
+      }
+    }
+  }
+});
+
 // ダミー計算ボタン生成
 $(document).on('mouseenter', 'input[type="button"][value="計算(K)"][title="計算"]', function() {
   if(!isWorkRecordPage()) return;
