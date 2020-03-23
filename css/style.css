@@ -244,3 +244,26 @@ td.Menu_Picture_Area.menu_cursor_sender:hover img {
   left: 0;
   top: 34px;
 }
+
+#Amoeba_Auto_Table00_Header_Table input[type="hidden"][name="Status"]+span[id="Status_sel"] {
+  display: inline-block;
+  text-align: center;
+  width: 50px;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+#Amoeba_Auto_Table00_Header_Table input[type="hidden"][name="Status"][value="0"]+span[id="Status_sel"] {
+  background-color: red;
+  color: #ffffff;
+}
+
+#Amoeba_Auto_Table00_Header_Table input[type="hidden"][name="Status"][value="1"]+span[id="Status_sel"] {
+  background-color: limegreen;
+  color: #ffffff;
+}
+
+#Amoeba_Auto_Table00_Header_Table input[type="hidden"][name="Status"][value="2"]+span[id="Status_sel"] {
+  background-color: grey;
+  color: #ffffff;
+}
