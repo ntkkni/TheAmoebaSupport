@@ -200,8 +200,8 @@ $(document).on('change', 'select[name="Business_Trip_CL"]', function() {
   var row2 = $(this).closest('tr').prev('tr');
   var row3 = $(this).closest('tr');
 
-  if($(this).val() == '37') {
-    // 在宅の場合は開始日時と終了日時に定時の時刻を自動入力する
+  if($(this).val().match(/^3\d$/)) {
+    // 在宅,直行直帰など(30番台)の場合は開始日時と終了日時に定時の時刻を自動入力する
     if(!row2.find('input[name="Starting_Of_The_Business_Time"]').val()){
       row2.find('input[name="Starting_Of_The_Business_Time"]').val(row2.find('input[name="Start_Fixed_Time"]').val());
     }
