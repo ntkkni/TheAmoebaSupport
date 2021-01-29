@@ -144,14 +144,14 @@ function checkIntervalReason(row1, row2, row3) {
   var tooltipDivs = row1.find('div[name="Ed_Comment_tooltip"]');
   var tooltipDiv = null;
   if (tooltipDivs.length == 0) {
-    tooltipDiv = $('<div name="Ed_Comment_tooltip" style="height:0px;" data-tooltip="休憩時間が合計1hを超える場合は理由を入力してください"></div>')
+    tooltipDiv = $('<div name="Ed_Comment_tooltip" style="height:0px;" data-tooltip="休憩理由を入力してください (HH:MM ～ HH:MM 休憩理由)"></div>')
     row1.find('input[name="Ed_Comment"]').before(tooltipDiv)
   } else {
     tooltipDiv = $(tooltipDivs[0]);
   }
 
-  // 休憩時間の合計が60分を超える場合はアラート
-  if (isChecked && intervalTotal > 60 && !comment) {
+  // 休憩時間がある場合はアラート
+  if (isChecked && intervalTotal > 0 && !comment) {
     tooltipDiv.addClass('alert_tooltip');
   } else {
     tooltipDiv.removeClass('alert_tooltip');
