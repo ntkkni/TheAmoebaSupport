@@ -1,6 +1,6 @@
 {
     "name": "The Amoeba Support for KCCS",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "manifest_version": 3,
     "description": "support the amoeba system",
     "content_security_policy": {
@@ -36,8 +36,7 @@
                 "scripts/content_profit_table.js"
             ],
             "css": [
-                "css/style.css",
-                "css/options.css"
+                "css/style.css"
             ],
             "all_frames": true
         }
