@@ -1,36 +1,44 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <script src="scripts/jquery.min.js"></script>
-    <script src="scripts/options.js"></script>
-    <link rel="stylesheet" type="text/css" href="css/options.css" type/>
-  </head>
-  <body>
-    
-    <div class="section_title">全般</div>
-    <div>
-      <div class="setting_name">会社コード:</div>
-      <div class="setting_value button-radio-choice">
-        <input type="text" class="" name="company_code" id="company_code" maxlength="5" value="15"/>
-      </div>
-    </div>
 
-    <div class="section_title">ワークフロー画面</div>
-    <div>
-      <div class="setting_name">ワークフロー送信時に送信先を履歴から選択:</div>
-      <div class="setting_value button-radio-choice">
-        <input type="radio" class="label_radio" name="choice_performer_history" id="choice_performer_history_on" value="1"><label for="choice_performer_history_on">ON</label><input type="radio" class="label_radio" name="choice_performer_history" id="choice_performer_history_off" value="0"><label for="choice_performer_history_off">OFF</label>
-      </div>
-    </div>
+<head>
+  <meta charset="utf-8">
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/options.js"></script>
+  <link rel="stylesheet" type="text/css" href="css/options.css" type />
+</head>
 
-    <div class="section_title">勤務実績報告画面</div>
-    <div>
-      <div class="setting_name">Enterキーで「検索」(明細行のチェックボックスがONの場合のみ「提出」):</div>
-      <div class="setting_value button-radio-choice">
-        <input type="radio" class="label_radio" name="choice_enter_search" id="choice_enter_search_on" value="1"><label for="choice_enter_search_on">ON</label><input type="radio" class="label_radio" name="choice_enter_search" id="choice_enter_search_off" value="0"><label for="choice_enter_search_off">OFF</label>
-      </div>
+<body>
+
+  <div class="section_title">全般</div>
+  <div>
+    <div class="setting_name">会社コード:</div>
+    <div class="setting_value button-radio-choice">
+      <input type="text" class="" name="company_code" id="company_code" maxlength="5" value="15" />
     </div>
-    <input id="save" type="button" value="Save">
-  </body>
+  </div>
+
+  <div class="section_title">ワークフロー画面</div>
+  <div>
+    <div class="setting_name">ワークフロー送信時に送信先を履歴から選択:</div>
+    <div class="setting_value button-radio-choice">
+      <input type="radio" class="label_radio" name="choice_performer_history" id="choice_performer_history_on"
+        value="1"><label for="choice_performer_history_on">ON</label><input type="radio" class="label_radio"
+        name="choice_performer_history" id="choice_performer_history_off" value="0"><label
+        for="choice_performer_history_off">OFF</label>
+    </div>
+  </div>
+
+  <div class="section_title">勤務実績報告画面</div>
+  <div>
+    <div class="setting_name">Enterキーで「検索」(明細行のチェックボックスがONの場合のみ「提出」):</div>
+    <div class="setting_value button-radio-choice">
+      <input type="radio" class="label_radio" name="choice_enter_search" id="choice_enter_search_on" value="1"><label
+        for="choice_enter_search_on">ON</label><input type="radio" class="label_radio" name="choice_enter_search"
+        id="choice_enter_search_off" value="0"><label for="choice_enter_search_off">OFF</label>
+    </div>
+  </div>
+  <input id="save" type="button" value="Save">
+</body>
+
 </html>
