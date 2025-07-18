@@ -1,33 +1,48 @@
 {
     "name": "The Amoeba Support for KCCS",
-    "version": "1.1.15",
-    "manifest_version": 2,
+    "version": "1.2.0",
+    "manifest_version": 3,
     "description": "support the amoeba system",
-    "content_security_policy": "script-src 'self'; object-src 'self'",
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'none';"
+    },
+    "host_permissions": [
+        "https://amoeba_chrome.kccs.co.jp/*",
+        "https://teams.kytdc.kccs.co.jp/*",
+        "https://amoeba.kccs.co.jp/*"
+    ],
     "permissions": [
         "storage",
-        "cookies",
-        "*://amoeba_chrome.kccs.co.jp/*",
-        "*://teams.kytdc.kccs.co.jp/*",
-        "*://amoeba.kccs.co.jp/*"
+        "cookies"
     ],
     "icons": {
-        "16" : "images/icon_16.png",
-        "48" : "images/icon_48.png",
+        "16": "images/icon_16.png",
+        "48": "images/icon_48.png",
         "128": "images/icon_128.png"
     },
-    "content_scripts": [{
-        "matches": ["*://amoeba_chrome.kccs.co.jp/*", "*://teams.kytdc.kccs.co.jp/*", "*://amoeba.kccs.co.jp/*"],
-        "js": ["scripts/jquery.min.js",  
-            "scripts/content_common.js",
-            "scripts/content_main.js", 
-            "scripts/content_work_record.js", 
-            "scripts/content_workflow.js", 
-            "scripts/content_profit_table.js"],
-        "css": ["css/style.css", "css/options.css"],
-        "all_frames": true
-    }],
-    "page_action":{
+    "content_scripts": [
+        {
+            "matches": [
+                "https://amoeba_chrome.kccs.co.jp/*",
+                "https://teams.kytdc.kccs.co.jp/*",
+                "https://amoeba.kccs.co.jp/*"
+            ],
+            "js": [
+                "scripts/jquery.min.js",
+                "scripts/content_common.js",
+                "scripts/content_main.js",
+                "scripts/content_work_record.js",
+                "scripts/content_workflow.js",
+                "scripts/content_profit_table.js"
+            ],
+            "css": [
+                "css/style.css",
+                "css/options.css"
+            ],
+            "all_frames": true
+        }
+    ],
+    "action": {
         "default_icon": "images/icon_16.png",
         "default_title": "The Amoeba Support for KCCS"
     },
