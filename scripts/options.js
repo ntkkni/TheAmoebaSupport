@@ -1,3 +1,4 @@
+
 function appendRow(tableBody) {
   const addTargetTableRow = tableBody.find('tr:first-child');
   const addTableRow = addTargetTableRow.clone(true);
@@ -7,6 +8,7 @@ function appendRow(tableBody) {
 }
 
 $(function () {
+  $('#shortcut_menu_list .flex-table table tbody').sortable();
 
   $('#choice_shortcut_menu').prop('checked', false);
   $('#choice_performer_history').prop('checked', false);
