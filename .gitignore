@@ -1,1 +1,7 @@
+!.gitkeep
+
 TheAmoebaSupport.zip
+.DS_Store
+
+dist/*
+tmp/*
