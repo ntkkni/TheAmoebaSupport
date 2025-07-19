@@ -105,14 +105,11 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 
 // ダミーボタン生成
 function createDummyButton(originalButton, originalButtonSelector, dummyButtonName) {
-    var posLeft = originalButton.position().left;
-    posLeft += 15; // TODO: なぜか期待する position の値が取れないので、一旦無理矢理調整。
-
-    var dummyButton = $('<input name="' + dummyButtonName + '" type="button" style="position: absolute;" >')
+    var dummyButton = $('<input name="' + dummyButtonName + '" type="button">')
         .addClass(originalButton.attr('class'))
         .val(originalButton.val())
-        .css('left', posLeft + "px")
         .attr("original_selector", originalButtonSelector); // もとのボタンのセレクタをもたせておく
 
     originalButton.after(dummyButton);
+    originalButton.hide();
 }
