@@ -19,12 +19,15 @@ function appendShortcutMenuItem(shortcutMenuBar, programId, displayName) {
 }
 
 function renderShortcutMenu(refresh) {
+    if (window.self !== window.top) return; // iframe 内の場合
+
     if (TheAmoebaSupportSetting.isChoiceShortcutMenu) {
+
         const header = $('#Header_Page');
         const shortcutBar = $('#TheAmoebaSupport_ShortcutBar');
 
         // ショートカットメニューが表示されていない場合は表示
-        if (header.length > 0 && shortcutBar.length == 0) {
+        if (header.length > 0 && header.children().length > 0 && shortcutBar.length == 0) {
             const shortcutMenuBar = $('<div id="TheAmoebaSupport_ShortcutBar">')
             $('#Header_Page').after(shortcutMenuBar);
             $('#Amoeba_Page').css('margin-top', '20px');

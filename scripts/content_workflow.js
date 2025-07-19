@@ -13,11 +13,11 @@ function originalButtonHover(originalButton, originalButtonSelector) {
   }
 
   if ($('input[name="' + dummyButtonNameExec + '"]').length == 0) {
-    createDummyButton(originalButton, originalButtonSelector, dummyButtonNameExec);
+    const dummyButton = createDummyButton(originalButton, originalButtonSelector, dummyButtonNameExec);
 
     // 位置を調整
-    var t = originalButton.offset().top + 30;
-    var l = originalButton.offset().left;
+    var t = dummyButton.offset().top + 30;
+    var l = dummyButton.offset().left;
     $('#performer_select').css({ top: t + "px", left: l + "px" });
   }
 }
@@ -191,7 +191,7 @@ function checkChangePerformer() {
   });
 
   // 最大10件
-  if (performerList.length > 10) {
+  if (TheAmoebaSupportSetting.performerList.length > 10) {
     TheAmoebaSupportSetting.performerList.shift();
   }
 
