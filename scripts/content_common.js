@@ -46,6 +46,19 @@ function loadSetting(setting) {
     }
 }
 
+function saveSetting() {
+
+    var data = {
+        company_code: TheAmoebaSupportSetting.companyCode,
+        choice_shortcut_menu: TheAmoebaSupportSetting.isChoiceShortcutMenu,
+        choice_performer_history: TheAmoebaSupportSetting.isChoicePerformerHistory,
+        choice_enter_search: TheAmoebaSupportSetting.isChoiceEnterSearch,
+        shortcut_menu_list: TheAmoebaSupportSetting.shortcutMenuList
+    };
+
+    chrome.storage.local.set({ "the_amoeba_support_setting": data }, function () { });
+}
+
 function setPerformerList(value) {
     TheAmoebaSupportSetting.performerList = [];
 

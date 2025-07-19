@@ -276,6 +276,19 @@ div.theamoebasupport-shortcut-menu-item:hover {
   text-decoration: none;
 }
 
+span.theamoebasupport-add-shortcut-btn {
+  margin-left: 30px;
+  cursor: pointer;
+}
+
+span.theamoebasupport-add-shortcut-btn-lbl:not(.shortcut-exists)::after {
+  content: '☆';
+}
+
+span.theamoebasupport-add-shortcut-btn-lbl.shortcut-exists::after {
+  content: '★';
+}
+
 #TheAmoebaSupport_ShortcutBar {
   background-color: #ced9e7;
   position: fixed;

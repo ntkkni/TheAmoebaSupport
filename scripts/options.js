@@ -79,13 +79,13 @@ $(document).on("click", "#save", function () {
   data.shortcut_menu_list = [];
   $('#shortcut_menu_list .flex-table table tbody tr').each(function (index, element) {
     const programId = $(element).find('input[name="program-id"]').val().trim();
-    const dsplayName = $(element).find('input[name="display-name"]').val().trim();
+    const displayName = $(element).find('input[name="display-name"]').val().trim();
 
-    if (!programId && !dsplayName) return;
+    if (!programId && !displayName) return;
 
     data.shortcut_menu_list.push({
       programId: programId,
-      displayName: dsplayName
+      displayName: displayName
     })
   });
 
