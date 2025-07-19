@@ -40,6 +40,10 @@ a.menu-group-item_Header:focus {
   padding: 5px 15px;
 }
 
+td.Menu_Picture_Area.menu_cursor_sender {
+  transition: background-color .4s;
+}
+
 td.Menu_Picture_Area.menu_cursor_sender:hover {
   background-color: #ecf0f5;
   cursor: pointer;
@@ -74,6 +78,7 @@ td.Menu_Picture_Area.menu_cursor_sender:hover img {
   border-left: solid 1px #3eb6fb !important;
   border-bottom: solid 1px #3eb6fb !important;
   border-radius: 0px 0px 0px 6px;
+  transition: background-color .4s;
 }
 
 .syncer-acdn-parent li a:hover {
