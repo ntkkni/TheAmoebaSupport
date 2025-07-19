@@ -105,11 +105,13 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 
 // ダミーボタン生成
 function createDummyButton(originalButton, originalButtonSelector, dummyButtonName) {
-    var dummyButton = $('<input name="' + dummyButtonName + '" type="button">')
+    const dummyButton = $('<input name="' + dummyButtonName + '" type="button">')
         .addClass(originalButton.attr('class'))
         .val(originalButton.val())
         .attr("original_selector", originalButtonSelector); // もとのボタンのセレクタをもたせておく
 
     originalButton.after(dummyButton);
     originalButton.hide();
+
+    return dummyButton;
 }
